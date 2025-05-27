@@ -15,14 +15,16 @@ class NAIIVE_BAYS:
         """
 
         
-        self.table = NAIIVE_BAYS.preccess_raw(table) if raw else table
+        self.table:dict = NAIIVE_BAYS.preccess_raw(table) if raw else table
 
     def classify(self,text:str):
         ps = log(self.table["lable"]["spam"]) #spam prob
         ph = log(self.table["lable"]["ham"]) #ham prob
-        for word in text.strip().lower():
-            ps += log(self.table[word]["spam"][True])
-            ph += log(self.table[word]["ham"][True])
+        for word in text.strip().lower().split():
+            if word not in self.table.keys():
+                continue
+            ps += log(self.table[word]["spam"][True]) if self.table[word]["spam"][True]!=0 else -1_000_000_000
+            ph += log(self.table[word]["ham"][True]) if self.table[word]["ham"][True]!=0 else -1_000_000_000
         return "ham" if ph>ps else "spam"
 
     def preccess_raw(table:list[str],smooth=False):
@@ -80,5 +82,21 @@ if __name__=="__main__":
             lines.append(line.strip())
     # print(len(lines)) ==> 5574
     n = len(lines)
-    test_data = lines[:1000]
-    data_table = NAIIVE_BAYS.preccess_raw(lines[1000:],True)
+    test_data = lines[:700]
+    data_table = NAIIVE_BAYS.preccess_raw(lines[700:],True)
+    data_without_smooth = NAIIVE_BAYS.preccess_raw(lines[700:],False)
+    naiive_bays = NAIIVE_BAYS(data_table)
+    bays_without_smooth = NAIIVE_BAYS(data_without_smooth)
+    score = 0
+    for line in test_data:
+        lable,text = (line.strip().lower()).split('\t')
+        if bays_without_smooth.classify(text)==lable:
+            score +=1
+    print(f"test result without smoothing: {score}/700")
+
+    score = 0
+    for line in test_data:
+        lable,text = (line.strip().lower()).split('\t')
+        if naiive_bays.classify(text)==lable:
+            score +=1
+    print(f"test result with smoothing: {score}/700")
