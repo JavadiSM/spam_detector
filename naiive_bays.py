@@ -1,3 +1,5 @@
+from math import log
+
 class NAIIVE_BAYS:
     def __init__(self,table,raw=False):
         """
@@ -15,9 +17,17 @@ class NAIIVE_BAYS:
         
         self.table = NAIIVE_BAYS.preccess_raw(table) if raw else table
 
+    def classify(self,text:str):
+        ps = log(self.table["lable"]["spam"]) #spam prob
+        ph = log(self.table["lable"]["ham"]) #ham prob
+        for word in text.strip().lower():
+            ps += log(self.table[word]["spam"][True])
+            ph += log(self.table[word]["ham"][True])
+        return "ham" if ph>ps else "spam"
 
     def preccess_raw(table:list[str],smooth=False):
         """
+        understanding input and building model
         it is very inefficent for now, I plan to enhance it in future
         lable\ttext
         each line of data set shuold be in this format
@@ -68,5 +78,7 @@ if __name__=="__main__":
     with open(path,"r", encoding='utf-8') as fo:
         for line in fo:
             lines.append(line.strip())
-    table = NAIIVE_BAYS.preccess_raw(lines,True)
-    print(table)
+    # print(len(lines)) ==> 5574
+    n = len(lines)
+    test_data = lines[:1000]
+    data_table = NAIIVE_BAYS.preccess_raw(lines[1000:],True)
